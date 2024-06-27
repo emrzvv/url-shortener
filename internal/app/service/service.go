@@ -9,8 +9,8 @@ func randFromRange(min, max int) int {
 	return rand.IntN(max-min+1) + min
 }
 
-func GenerateShortenUrl(length int) string {
-	var result []byte = make([]byte, length)
+func GenerateShortenURL(length int) string {
+	var result = make([]byte, length)
 	var ranges = [3][2]int{
 		{48, 57},
 		{65, 90},
@@ -23,12 +23,12 @@ func GenerateShortenUrl(length int) string {
 	return string(result)
 }
 
-func IsUrlValid(url string) bool {
+func IsURLValid(url string) bool {
 	_, err := regexp.MatchString("^https?://(.*)\\.(.*)$", url)
 	return err == nil
 }
 
-func IsIdValid(id string) bool {
+func IsIDValid(id string) bool {
 	_, err := regexp.MatchString("^[0-9a-zA-Z]{6}$", id)
 	return err == nil
 }

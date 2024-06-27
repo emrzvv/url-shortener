@@ -14,10 +14,10 @@ func Shorten(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
 		r.Body == nil ||
 		r.Body == http.NoBody {
 		w.WriteHeader(http.StatusBadRequest)
-	} else if body, err := io.ReadAll(r.Body); err == nil && service.IsUrlValid(string(body)) {
+	} else if body, err := io.ReadAll(r.Body); err == nil && service.IsURLValid(string(body)) {
 		w.WriteHeader(http.StatusCreated)
-		url := service.GenerateShortenUrl(6)
-		for _, ok := s.Get(url); ok; url = service.GenerateShortenUrl(6) {
+		url := service.GenerateShortenURL(6)
+		for _, ok := s.Get(url); ok; url = service.GenerateShortenURL(6) {
 		}
 		s.Set(url, string(body))
 		w.Write([]byte("http://localhost:8080/" + url)) // TODO: get self address from config or smth
@@ -26,11 +26,11 @@ func Shorten(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
 	}
 }
 
-func GetById(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
+func GetByID(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
-		if id := r.PathValue("id"); !service.IsIdValid(id) {
+		if id := r.PathValue("id"); !service.IsIDValid(id) {
 			w.WriteHeader(http.StatusBadRequest)
 		} else if value, ok := s.Get(id); ok {
 			w.Header().Set("Location", value)
