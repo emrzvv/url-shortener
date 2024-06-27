@@ -17,7 +17,6 @@ func main() {
 func run() error {
 	s := &storage.Storage{}
 	s.Init()
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		endpoint.Shorten(w, r, s)
@@ -28,7 +27,6 @@ func run() error {
 	address := ":8080"
 
 	fmt.Println("Listening on " + address)
-
 	if err := http.ListenAndServe(address, mux); err != nil {
 		return err
 	}
