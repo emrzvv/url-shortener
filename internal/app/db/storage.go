@@ -31,3 +31,7 @@ func (storage *Storage) Set(key string, value string) {
 func (storage *Storage) String() string {
 	return fmt.Sprintf("%v", storage.db)
 }
+
+func (storage *Storage) Clear() {
+	clear(storage.db)
+}

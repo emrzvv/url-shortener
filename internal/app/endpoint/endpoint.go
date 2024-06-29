@@ -11,7 +11,6 @@ import (
 func Shorten(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
 	if r.Method != http.MethodPost ||
 		r.Header.Get("Content-Type") != "text/plain; charset=utf-8" ||
-		r.Body == nil ||
 		r.Body == http.NoBody {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -22,7 +21,7 @@ func Shorten(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	url := service.GenerateShortenURL(6)
 	for _, ok := s.Get(url); ok; url = service.GenerateShortenURL(6) {
