@@ -21,7 +21,7 @@ func run() error {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		endpoint.Shorten(w, r, s)
 	})
-	mux.HandleFunc("/{id}/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) {
 		endpoint.GetByID(w, r, s)
 	})
 	address := ":8080"

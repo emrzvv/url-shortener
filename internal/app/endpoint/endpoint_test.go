@@ -78,9 +78,7 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "https://ya.ru",
-			doStorageOps: func(s storage.Storage) {
-				return
-			},
+			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -96,9 +94,7 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "https://ya.ru",
-			doStorageOps: func(s storage.Storage) {
-				return
-			},
+			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -114,9 +110,7 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "",
-			doStorageOps: func(s storage.Storage) {
-				return
-			},
+			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -132,9 +126,7 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "httpts:///y2o3ria.2348kjnru.slkdf//skl",
-			doStorageOps: func(s storage.Storage) {
-				return
-			},
+			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -150,9 +142,7 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{"Content-Type"},
 			body:           "https://ya.ru",
-			doStorageOps: func(s storage.Storage) {
-				return
-			},
+			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code: 201,
 				headers: map[string]string{
@@ -179,9 +169,7 @@ func TestGetByID(t *testing.T) {
 			headers:        map[string]string{},
 			headersToCheck: []string{},
 			body:           "",
-			doStorageOps: func(s storage.Storage) {
-				return
-			},
+			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -195,9 +183,7 @@ func TestGetByID(t *testing.T) {
 			headers:        map[string]string{},
 			headersToCheck: []string{},
 			body:           "",
-			doStorageOps: func(s storage.Storage) {
-				return
-			},
+			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -213,7 +199,6 @@ func TestGetByID(t *testing.T) {
 			body:           "",
 			doStorageOps: func(s storage.Storage) {
 				s.Set("111111", "https://ya.ru")
-				return
 			},
 			cleanStorage: true,
 			expected: expectedS{
@@ -233,8 +218,6 @@ func TestGetByID(t *testing.T) {
 				s.Set("111111", "https://ya.ru")
 				s.Set("222222", "https://vk.com")
 				s.Set("333333", "https://t.me")
-
-				return
 			},
 			cleanStorage: true,
 			expected: expectedS{
