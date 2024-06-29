@@ -2,36 +2,41 @@ package db
 
 import "fmt"
 
-type Storage struct {
+type Storage interface {
+	Init()
+	Get(key string) (string, bool)
+	Contains(key string) bool
+	Set(key string, value string)
+	String() string
+	Clear()
+}
+
+type InMemoryDB struct {
 	db map[string]string
 }
 
-func (storage *Storage) Init() {
+func (storage *InMemoryDB) Init() {
 	storage.db = make(map[string]string)
 }
 
-func NewStorage() Storage {
-	return Storage{}
-}
-
-func (storage *Storage) Get(key string) (string, bool) {
+func (storage *InMemoryDB) Get(key string) (string, bool) {
 	value, ok := storage.db[key]
 	return value, ok
 }
 
-func (storage *Storage) Contains(key string) bool {
+func (storage *InMemoryDB) Contains(key string) bool {
 	_, ok := storage.db[key]
 	return ok
 }
 
-func (storage *Storage) Set(key string, value string) {
+func (storage *InMemoryDB) Set(key string, value string) {
 	storage.db[key] = value
 }
 
-func (storage *Storage) String() string {
+func (storage *InMemoryDB) String() string {
 	return fmt.Sprintf("%v", storage.db)
 }
 
-func (storage *Storage) Clear() {
+func (storage *InMemoryDB) Clear() {
 	clear(storage.db)
 }

@@ -5,10 +5,11 @@ import (
 	"github.com/emrzvv/url-shortener/internal/app/service"
 	"io"
 	"net/http"
+	"strings"
 )
 
 // TODO: middleware? / (general request validation) -> /validate (body validation) -> /shorten (response with shortened url)
-func Shorten(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
+func Shorten(w http.ResponseWriter, r *http.Request, s storage.Storage) {
 	if r.Method != http.MethodPost ||
 		r.Header.Get("Content-Type") != "text/plain; charset=utf-8" ||
 		r.Body == http.NoBody {
@@ -30,13 +31,14 @@ func Shorten(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
 	w.Write([]byte("http://localhost:8080/" + url)) // TODO: get self address from config or smth
 }
 
-func GetByID(w http.ResponseWriter, r *http.Request, s *storage.Storage) {
+func GetByID(w http.ResponseWriter, r *http.Request, s storage.Storage) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	id := r.PathValue("id")
-	if !service.IsIDValid(id) {
+	//TODO: use id := r.PathValue("id")
+	id := strings.Split(r.URL.Path, "/")[1]
+	if id == "" || !service.IsIDValid(id) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

@@ -11,25 +11,64 @@ import (
 	"testing"
 )
 
-func TestShorten(t *testing.T) {
-	s := &storage.Storage{}
-	s.Init()
-	type expected struct {
-		code    int
-		headers map[string]string
-		body    string
-	}
+type expectedS struct {
+	code    int
+	headers map[string]string
+	body    string
+}
 
-	tests := []struct {
-		name           string
-		method         string
-		url            string
-		headers        map[string]string
-		headersToCheck []string
-		body           string
-		doStorageOps   func(s *storage.Storage)
-		expected       expected
-	}{
+type testCase struct {
+	name           string
+	method         string
+	url            string
+	headers        map[string]string
+	headersToCheck []string
+	body           string
+	doStorageOps   func(s storage.Storage)
+	cleanStorage   bool
+	expected       expectedS
+}
+
+func (test *testCase) run(t *testing.T, s storage.Storage) func(func(http.ResponseWriter, *http.Request, storage.Storage)) {
+	return func(handler func(http.ResponseWriter, *http.Request, storage.Storage)) {
+		t.Run(test.name, func(t *testing.T) {
+			var requestBody io.Reader
+			if test.body != "" {
+				requestBody = strings.NewReader(test.body)
+			} else {
+				requestBody = http.NoBody
+			}
+			request := httptest.NewRequest(test.method, test.url, requestBody)
+			for k, v := range test.headers {
+				request.Header.Add(k, v)
+			}
+			test.doStorageOps(s)
+			if test.cleanStorage {
+				defer s.Clear()
+			}
+			w := httptest.NewRecorder()
+			handler(w, request, s)
+			result := w.Result()
+
+			require.Equal(t, test.expected.code, result.StatusCode)
+			for _, header := range test.headersToCheck {
+				require.Equal(t, test.expected.headers[header], result.Header.Get(header))
+			}
+			defer result.Body.Close()
+			resultBody, err := io.ReadAll(result.Body)
+			require.NoError(t, err)
+			if test.expected.body != "" {
+				assert.Regexp(t, test.expected.body, string(resultBody))
+			}
+		})
+	}
+}
+
+func TestShorten(t *testing.T) {
+	s := &storage.InMemoryDB{}
+	s.Init()
+
+	tests := []testCase{
 		{
 			name:   "#1 check not allowed method",
 			method: http.MethodPut,
@@ -39,10 +78,10 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "https://ya.ru",
-			doStorageOps: func(s *storage.Storage) {
+			doStorageOps: func(s storage.Storage) {
 				return
 			},
-			expected: expected{
+			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
 				body:    "",
@@ -57,10 +96,10 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "https://ya.ru",
-			doStorageOps: func(s *storage.Storage) {
+			doStorageOps: func(s storage.Storage) {
 				return
 			},
-			expected: expected{
+			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
 				body:    "",
@@ -75,10 +114,10 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "",
-			doStorageOps: func(s *storage.Storage) {
+			doStorageOps: func(s storage.Storage) {
 				return
 			},
-			expected: expected{
+			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
 				body:    "",
@@ -93,10 +132,10 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "httpts:///y2o3ria.2348kjnru.slkdf//skl",
-			doStorageOps: func(s *storage.Storage) {
+			doStorageOps: func(s storage.Storage) {
 				return
 			},
-			expected: expected{
+			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
 				body:    "",
@@ -111,10 +150,10 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{"Content-Type"},
 			body:           "https://ya.ru",
-			doStorageOps: func(s *storage.Storage) {
+			doStorageOps: func(s storage.Storage) {
 				return
 			},
-			expected: expected{
+			expected: expectedS{
 				code: 201,
 				headers: map[string]string{
 					"Content-Type": "text/plain; charset=utf-8",
@@ -124,33 +163,90 @@ func TestShorten(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var requestBody io.Reader
-			if test.body != "" {
-				requestBody = strings.NewReader(test.body)
-			} else {
-				requestBody = http.NoBody
-			}
-			request := httptest.NewRequest(test.method, test.url, requestBody)
-			for k, v := range test.headers {
-				request.Header.Add(k, v)
-			}
-			test.doStorageOps(s)
+		test.run(t, s)(Shorten)
+	}
+}
 
-			w := httptest.NewRecorder()
-			Shorten(w, request, s)
-			result := w.Result()
+func TestGetByID(t *testing.T) {
+	s := &storage.InMemoryDB{}
+	s.Init()
 
-			require.Equal(t, test.expected.code, result.StatusCode)
-			for _, header := range test.headersToCheck {
-				require.Equal(t, test.expected.headers[header], result.Header.Get(header))
-			}
-			defer result.Body.Close()
-			resultBody, err := io.ReadAll(result.Body)
-			require.NoError(t, err)
-			if test.expected.body != "" {
-				assert.Regexp(t, test.expected.body, string(resultBody))
-			}
-		})
+	tests := []testCase{
+		{
+			name:           "#1 wrong method",
+			method:         http.MethodPost,
+			url:            "/AAAAAA/",
+			headers:        map[string]string{},
+			headersToCheck: []string{},
+			body:           "",
+			doStorageOps: func(s storage.Storage) {
+				return
+			},
+			expected: expectedS{
+				code:    400,
+				headers: map[string]string{},
+				body:    "",
+			},
+		},
+		{
+			name:           "#2 invalid id",
+			method:         http.MethodGet,
+			url:            "/000000000000/",
+			headers:        map[string]string{},
+			headersToCheck: []string{},
+			body:           "",
+			doStorageOps: func(s storage.Storage) {
+				return
+			},
+			expected: expectedS{
+				code:    400,
+				headers: map[string]string{},
+				body:    "",
+			},
+		},
+		{
+			name:           "#3 unknown id",
+			method:         http.MethodGet,
+			url:            "/000000/",
+			headers:        map[string]string{},
+			headersToCheck: []string{},
+			body:           "",
+			doStorageOps: func(s storage.Storage) {
+				s.Set("111111", "https://ya.ru")
+				return
+			},
+			cleanStorage: true,
+			expected: expectedS{
+				code:    400,
+				headers: map[string]string{},
+				body:    "",
+			},
+		},
+		{
+			name:           "#4 default",
+			method:         http.MethodGet,
+			url:            "/111111/",
+			headers:        map[string]string{},
+			headersToCheck: []string{"Location"},
+			body:           "",
+			doStorageOps: func(s storage.Storage) {
+				s.Set("111111", "https://ya.ru")
+				s.Set("222222", "https://vk.com")
+				s.Set("333333", "https://t.me")
+
+				return
+			},
+			cleanStorage: true,
+			expected: expectedS{
+				code: 307,
+				headers: map[string]string{
+					"Location": "https://ya.ru",
+				},
+				body: "",
+			},
+		},
+	}
+	for _, test := range tests {
+		test.run(t, s)(GetByID)
 	}
 }

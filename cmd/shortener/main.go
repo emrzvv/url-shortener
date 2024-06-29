@@ -15,13 +15,13 @@ func main() {
 }
 
 func run() error {
-	s := &storage.Storage{}
+	s := &storage.InMemoryDB{}
 	s.Init()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		endpoint.Shorten(w, r, s)
 	})
-	mux.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/{id}/", func(w http.ResponseWriter, r *http.Request) {
 		endpoint.GetByID(w, r, s)
 	})
 	address := ":8080"
