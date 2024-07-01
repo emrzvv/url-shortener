@@ -1,21 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"github.com/emrzvv/url-shortener/cfg"
 	storage "github.com/emrzvv/url-shortener/internal/app/db"
 	"github.com/emrzvv/url-shortener/internal/app/endpoint"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	"log"
 	"net/http"
 )
 
 func main() {
-	parseFlags()
+	var err error
 
-	if err := run(); err != nil {
-		fmt.Println(err)
-		return
+	err = cfg.Cfg.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err = run(); err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -35,7 +39,7 @@ func run() error {
 		})
 	})
 
-	fmt.Println("Listening on " + cfg.Cfg.RunAddress)
+	log.Println("Listening on " + cfg.Cfg.RunAddress)
 	if err := http.ListenAndServe(cfg.Cfg.RunAddress, router); err != nil {
 		return err
 	}
