@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/emrzvv/url-shortener/cfg"
 	storage "github.com/emrzvv/url-shortener/internal/app/db"
 	"github.com/emrzvv/url-shortener/internal/app/endpoint"
 	"github.com/go-chi/chi/v5"
@@ -10,6 +11,8 @@ import (
 )
 
 func main() {
+	parseFlags()
+
 	if err := run(); err != nil {
 		fmt.Println(err)
 		return
@@ -31,10 +34,9 @@ func run() error {
 			})
 		})
 	})
-	address := ":8080"
 
-	fmt.Println("Listening on " + address)
-	if err := http.ListenAndServe(address, router); err != nil {
+	fmt.Println("Listening on " + cfg.Cfg.RunAddress)
+	if err := http.ListenAndServe(cfg.Cfg.RunAddress, router); err != nil {
 		return err
 	}
 

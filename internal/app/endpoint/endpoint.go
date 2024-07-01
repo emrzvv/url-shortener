@@ -1,6 +1,7 @@
 package endpoint
 
 import (
+	"github.com/emrzvv/url-shortener/cfg"
 	storage "github.com/emrzvv/url-shortener/internal/app/db"
 	"github.com/emrzvv/url-shortener/internal/app/service"
 	"github.com/go-chi/chi/v5"
@@ -27,7 +28,7 @@ func Shorten(w http.ResponseWriter, r *http.Request, s storage.Storage) {
 	for _, ok := s.Get(url); ok; url = service.GenerateShortenURL(6) {
 	}
 	s.Set(url, string(body))
-	w.Write([]byte("http://localhost:8080/" + url)) // TODO: get self address from config or smth
+	w.Write([]byte(cfg.Cfg.BaseAddress + "/" + url))
 }
 
 func GetByID(w http.ResponseWriter, r *http.Request, s storage.Storage) {
