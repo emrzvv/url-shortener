@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"context"
+	"github.com/emrzvv/url-shortener/cfg"
 	storage "github.com/emrzvv/url-shortener/internal/app/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -78,7 +79,7 @@ func (test *testCase) run(t *testing.T, s storage.Storage) func(func(http.Respon
 func TestShorten(t *testing.T) {
 	s := &storage.InMemoryDB{}
 	s.Init()
-
+	cfg.Cfg.Load()
 	tests := []testCase{
 		//{
 		//	name:   "#1 check not allowed method",
@@ -159,7 +160,7 @@ func TestShorten(t *testing.T) {
 				headers: map[string]string{
 					"Content-Type": "text/plain; charset=utf-8",
 				},
-				body: "^/[0-9a-zA-Z]{6}$",
+				body: "^http://localhost:8080/[0-9a-zA-Z]{6}$",
 			},
 		},
 	}
@@ -171,6 +172,7 @@ func TestShorten(t *testing.T) {
 func TestGetByID(t *testing.T) {
 	s := &storage.InMemoryDB{}
 	s.Init()
+	cfg.Cfg.Load()
 
 	tests := []testCase{
 		//{
