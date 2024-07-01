@@ -159,7 +159,7 @@ func TestShorten(t *testing.T) {
 				headers: map[string]string{
 					"Content-Type": "text/plain; charset=utf-8",
 				},
-				body: "^https?://localhost:8080/[0-9a-zA-Z]{6}$",
+				body: "^/[0-9a-zA-Z]{6}$",
 			},
 		},
 	}
