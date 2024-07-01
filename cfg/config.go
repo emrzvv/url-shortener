@@ -17,12 +17,11 @@ func (cfg *Config) Load() error {
 	if err != nil {
 		return err
 	}
-	if cfg.RunAddress == "" {
-		flag.StringVar(&cfg.RunAddress, "a", "localhost:8080", "The address of the server")
+
+	flag.StringVar(&cfg.RunAddress, "a", "localhost:8080", "The address of the server")
+	flag.StringVar(&cfg.BaseAddress, "b", "http://localhost:8080", "Base address of shortened URLs")
+	if cfg.RunAddress == "" || cfg.BaseAddress == "" {
+		flag.Parse()
 	}
-	if cfg.BaseAddress == "" {
-		flag.StringVar(&cfg.BaseAddress, "b", "http://localhost:8080", "Base address of shortened URLs")
-	}
-	flag.Parse()
 	return nil
 }
