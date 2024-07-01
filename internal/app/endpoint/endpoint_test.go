@@ -79,7 +79,7 @@ func (test *testCase) run(t *testing.T, s storage.Storage) func(func(http.Respon
 func TestShorten(t *testing.T) {
 	s := &storage.InMemoryDB{}
 	s.Init()
-	cfg.Cfg.Load()
+	cfg.Cfg.LoadDefault()
 	tests := []testCase{
 		//{
 		//	name:   "#1 check not allowed method",
@@ -172,7 +172,7 @@ func TestShorten(t *testing.T) {
 func TestGetByID(t *testing.T) {
 	s := &storage.InMemoryDB{}
 	s.Init()
-	cfg.Cfg.Load()
+	cfg.Cfg.LoadDefault()
 
 	tests := []testCase{
 		//{

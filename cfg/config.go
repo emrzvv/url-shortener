@@ -25,3 +25,8 @@ func (cfg *Config) Load() error {
 	}
 	return nil
 }
+
+func (cfg *Config) LoadDefault() {
+	cfg.RunAddress = "localhost:8080"
+	cfg.BaseAddress = "http://localhost:8080"
+}
