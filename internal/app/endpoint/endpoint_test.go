@@ -1,7 +1,9 @@
 package endpoint
 
 import (
+	"context"
 	storage "github.com/emrzvv/url-shortener/internal/app/db"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -21,6 +23,7 @@ type testCase struct {
 	name           string
 	method         string
 	url            string
+	urlParams      map[string]string
 	headers        map[string]string
 	headersToCheck []string
 	body           string
@@ -47,6 +50,14 @@ func (test *testCase) run(t *testing.T, s storage.Storage) func(func(http.Respon
 				defer s.Clear()
 			}
 			w := httptest.NewRecorder()
+
+			rctx := chi.NewRouteContext()
+			for k, v := range test.urlParams {
+				rctx.URLParams.Add(k, v)
+			}
+
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
 			handler(w, request, s)
 			result := w.Result()
 
@@ -69,22 +80,22 @@ func TestShorten(t *testing.T) {
 	s.Init()
 
 	tests := []testCase{
-		{
-			name:   "#1 check not allowed method",
-			method: http.MethodPut,
-			url:    "/",
-			headers: map[string]string{
-				"Content-Type": "text/plain; charset=utf-8",
-			},
-			headersToCheck: []string{},
-			body:           "https://ya.ru",
-			doStorageOps:   func(s storage.Storage) {},
-			expected: expectedS{
-				code:    400,
-				headers: map[string]string{},
-				body:    "",
-			},
-		},
+		//{
+		//	name:   "#1 check not allowed method",
+		//	method: http.MethodPut,
+		//	url:    "/",
+		//	headers: map[string]string{
+		//		"Content-Type": "text/plain; charset=utf-8",
+		//	},
+		//	headersToCheck: []string{},
+		//	body:           "https://ya.ru",
+		//	doStorageOps:   func(s storage.Storage) {},
+		//	expected: expectedS{
+		//		code:    400,
+		//		headers: map[string]string{},
+		//		body:    "",
+		//	},
+		//},
 		{
 			name:   "#2 check wrong content-type header",
 			method: http.MethodPost,
@@ -162,10 +173,27 @@ func TestGetByID(t *testing.T) {
 	s.Init()
 
 	tests := []testCase{
+		//{
+		//	name:           "#1 wrong method",
+		//	method:         http.MethodPost,
+		//	url:            "/AAAAAA/",
+		//	headers:        map[string]string{},
+		//	headersToCheck: []string{},
+		//	body:           "",
+		//	doStorageOps:   func(s storage.Storage) {},
+		//	expected: expectedS{
+		//		code:    400,
+		//		headers: map[string]string{},
+		//		body:    "",
+		//	},
+		//},
 		{
-			name:           "#1 wrong method",
-			method:         http.MethodPost,
-			url:            "/AAAAAA/",
+			name:   "#2 invalid id",
+			method: http.MethodGet,
+			url:    "/{id}/",
+			urlParams: map[string]string{
+				"id": "00000000000",
+			},
 			headers:        map[string]string{},
 			headersToCheck: []string{},
 			body:           "",
@@ -177,23 +205,12 @@ func TestGetByID(t *testing.T) {
 			},
 		},
 		{
-			name:           "#2 invalid id",
-			method:         http.MethodGet,
-			url:            "/000000000000/",
-			headers:        map[string]string{},
-			headersToCheck: []string{},
-			body:           "",
-			doStorageOps:   func(s storage.Storage) {},
-			expected: expectedS{
-				code:    400,
-				headers: map[string]string{},
-				body:    "",
+			name:   "#3 unknown id",
+			method: http.MethodGet,
+			url:    "/{id}/",
+			urlParams: map[string]string{
+				"id": "000000",
 			},
-		},
-		{
-			name:           "#3 unknown id",
-			method:         http.MethodGet,
-			url:            "/000000/",
 			headers:        map[string]string{},
 			headersToCheck: []string{},
 			body:           "",
@@ -208,9 +225,12 @@ func TestGetByID(t *testing.T) {
 			},
 		},
 		{
-			name:           "#4 default",
-			method:         http.MethodGet,
-			url:            "/111111/",
+			name:   "#4 default",
+			method: http.MethodGet,
+			url:    "/{id}/",
+			urlParams: map[string]string{
+				"id": "111111",
+			},
 			headers:        map[string]string{},
 			headersToCheck: []string{"Location"},
 			body:           "",
