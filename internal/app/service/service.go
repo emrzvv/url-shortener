@@ -20,7 +20,7 @@ func NewURLShortenerService(db storage.Storage) URLShortenerService {
 }
 
 func (s *URLShortenerServiceImpl) GenerateShortURL(url string) (string, error) {
-	if isValid, _ := regexp.MatchString("^https?://(.*)\\.(.*)$", url); !isValid {
+	if isValid, _ := regexp.MatchString("^https?://(.+)\\.(.+)$", url); !isValid {
 		return "", &InvalidURLError{value: url}
 	}
 	shorten := generate(6)
