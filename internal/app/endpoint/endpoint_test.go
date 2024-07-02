@@ -81,7 +81,7 @@ func (test *testCase) run(t *testing.T, s service.URLShortenerService, db storag
 
 func TestShorten(t *testing.T) {
 	db := storage.NewInMemoryDBStorage(make(map[string]string))
-	urlShortenerService := service.NewUrlShortenerService(db)
+	urlShortenerService := service.NewURLShortenerService(db)
 
 	cfg.Cfg.LoadDefault()
 	tests := []testCase{
@@ -171,7 +171,7 @@ func TestShorten(t *testing.T) {
 
 func TestGetByID(t *testing.T) {
 	db := storage.NewInMemoryDBStorage(make(map[string]string))
-	urlShortenerService := service.NewUrlShortenerService(db)
+	urlShortenerService := service.NewURLShortenerService(db)
 
 	cfg.Cfg.LoadDefault()
 

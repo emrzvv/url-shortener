@@ -26,7 +26,7 @@ func main() {
 
 func run() error {
 	db := storage.NewInMemoryDBStorage(make(map[string]string))
-	urlShortenerService := service.NewUrlShortenerService(db)
+	urlShortenerService := service.NewURLShortenerService(db)
 
 	router := chi.NewRouter()
 	router.Use(chimw.Logger)

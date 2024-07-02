@@ -15,7 +15,7 @@ type URLShortenerServiceImpl struct {
 	db storage.Storage
 }
 
-func NewUrlShortenerService(db storage.Storage) URLShortenerService {
+func NewURLShortenerService(db storage.Storage) URLShortenerService {
 	return &URLShortenerServiceImpl{db: db}
 }
 
