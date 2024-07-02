@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/emrzvv/url-shortener/cfg"
 	storage "github.com/emrzvv/url-shortener/internal/app/db"
+	"github.com/emrzvv/url-shortener/internal/app/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,8 +34,8 @@ type testCase struct {
 	expected       expectedS
 }
 
-func (test *testCase) run(t *testing.T, s storage.Storage) func(func(http.ResponseWriter, *http.Request, storage.Storage)) {
-	return func(handler func(http.ResponseWriter, *http.Request, storage.Storage)) {
+func (test *testCase) run(t *testing.T, s service.UrlShortenerService, db storage.Storage) func(func(http.ResponseWriter, *http.Request, service.UrlShortenerService)) {
+	return func(handler func(http.ResponseWriter, *http.Request, service.UrlShortenerService)) {
 		t.Run(test.name, func(t *testing.T) {
 			var requestBody io.Reader
 			if test.body != "" {
@@ -46,9 +47,11 @@ func (test *testCase) run(t *testing.T, s storage.Storage) func(func(http.Respon
 			for k, v := range test.headers {
 				request.Header.Add(k, v)
 			}
-			test.doStorageOps(s)
+			if test.doStorageOps != nil {
+				test.doStorageOps(db)
+			}
 			if test.cleanStorage {
-				defer s.Clear()
+				defer db.Clear()
 			}
 			w := httptest.NewRecorder()
 
@@ -77,8 +80,9 @@ func (test *testCase) run(t *testing.T, s storage.Storage) func(func(http.Respon
 }
 
 func TestShorten(t *testing.T) {
-	s := &storage.InMemoryDB{}
-	s.Init()
+	db := storage.NewInMemoryDBStorage(make(map[string]string))
+	urlShortenerService := service.NewUrlShortenerService(db)
+
 	cfg.Cfg.LoadDefault()
 	tests := []testCase{
 		//{
@@ -106,7 +110,6 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "https://ya.ru",
-			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -122,7 +125,6 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "",
-			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -138,7 +140,6 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{},
 			body:           "httpts:///y2o3ria.2348kjnru.slkdf//skl",
-			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -154,7 +155,6 @@ func TestShorten(t *testing.T) {
 			},
 			headersToCheck: []string{"Content-Type"},
 			body:           "https://ya.ru",
-			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code: 201,
 				headers: map[string]string{
@@ -165,13 +165,14 @@ func TestShorten(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		test.run(t, s)(Shorten)
+		test.run(t, urlShortenerService, db)(Shorten)
 	}
 }
 
 func TestGetByID(t *testing.T) {
-	s := &storage.InMemoryDB{}
-	s.Init()
+	db := storage.NewInMemoryDBStorage(make(map[string]string))
+	urlShortenerService := service.NewUrlShortenerService(db)
+
 	cfg.Cfg.LoadDefault()
 
 	tests := []testCase{
@@ -199,7 +200,6 @@ func TestGetByID(t *testing.T) {
 			headers:        map[string]string{},
 			headersToCheck: []string{},
 			body:           "",
-			doStorageOps:   func(s storage.Storage) {},
 			expected: expectedS{
 				code:    400,
 				headers: map[string]string{},
@@ -252,6 +252,6 @@ func TestGetByID(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		test.run(t, s)(GetByID)
+		test.run(t, urlShortenerService, db)(GetByID)
 	}
 }

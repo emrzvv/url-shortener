@@ -3,14 +3,13 @@ package endpoint
 import (
 	"fmt"
 	"github.com/emrzvv/url-shortener/cfg"
-	storage "github.com/emrzvv/url-shortener/internal/app/db"
 	"github.com/emrzvv/url-shortener/internal/app/service"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
 )
 
-func Shorten(w http.ResponseWriter, r *http.Request, s storage.Storage) {
+func Shorten(w http.ResponseWriter, r *http.Request, s service.UrlShortenerService) {
 	if r.Header.Get("Content-Type") != "text/plain; charset=utf-8" ||
 		r.Body == http.NoBody {
 		w.WriteHeader(http.StatusBadRequest)
@@ -18,31 +17,31 @@ func Shorten(w http.ResponseWriter, r *http.Request, s storage.Storage) {
 	}
 
 	body, err := io.ReadAll(r.Body)
-	if err != nil || !service.IsURLValid(string(body)) {
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	shorten, shortenErr := s.GenerateShortURL(string(body))
+	if shortenErr != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	url := service.GenerateShortenURL(6)
-	for _, ok := s.Get(url); ok; url = service.GenerateShortenURL(6) {
-	}
-	s.Set(url, string(body))
-	result := fmt.Sprintf("%s/%s", cfg.Cfg.BaseAddress, url)
-	w.Write([]byte(result))
+	w.Write([]byte(fmt.Sprintf("%s/%s", cfg.Cfg.BaseAddress, shorten)))
 }
 
-func GetByID(w http.ResponseWriter, r *http.Request, s storage.Storage) {
+func GetByID(w http.ResponseWriter, r *http.Request, s service.UrlShortenerService) {
 	id := chi.URLParam(r, "id")
-	if id == "" || !service.IsIDValid(id) {
+
+	origin, err := s.GetOriginURLByID(id)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	value, ok := s.Get(id)
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-	}
-	w.Header().Set("Location", value)
+
+	w.Header().Set("Location", origin)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }

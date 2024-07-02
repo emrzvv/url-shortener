@@ -3,7 +3,6 @@ package db
 import "fmt"
 
 type Storage interface {
-	Init()
 	Get(key string) (string, bool)
 	Contains(key string) bool
 	Set(key string, value string)
@@ -17,6 +16,10 @@ type InMemoryDB struct {
 
 func (storage *InMemoryDB) Init() {
 	storage.db = make(map[string]string)
+}
+
+func NewInMemoryDBStorage(db map[string]string) Storage {
+	return &InMemoryDB{db: db}
 }
 
 func (storage *InMemoryDB) Get(key string) (string, bool) {
