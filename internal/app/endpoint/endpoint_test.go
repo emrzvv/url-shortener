@@ -34,8 +34,8 @@ type testCase struct {
 	expected       expectedS
 }
 
-func (test *testCase) run(t *testing.T, s service.UrlShortenerService, db storage.Storage) func(func(http.ResponseWriter, *http.Request, service.UrlShortenerService)) {
-	return func(handler func(http.ResponseWriter, *http.Request, service.UrlShortenerService)) {
+func (test *testCase) run(t *testing.T, s service.URLShortenerService, db storage.Storage) func(func(http.ResponseWriter, *http.Request, service.URLShortenerService)) {
+	return func(handler func(http.ResponseWriter, *http.Request, service.URLShortenerService)) {
 		t.Run(test.name, func(t *testing.T) {
 			var requestBody io.Reader
 			if test.body != "" {

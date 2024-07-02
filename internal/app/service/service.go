@@ -6,20 +6,20 @@ import (
 	"regexp"
 )
 
-type UrlShortenerService interface {
+type URLShortenerService interface {
 	GenerateShortURL(url string) (string, error)
 	GetOriginURLByID(id string) (string, error)
 }
 
-type UrlShortenerServiceImpl struct {
+type URLShortenerServiceImpl struct {
 	db storage.Storage
 }
 
-func NewUrlShortenerService(db storage.Storage) UrlShortenerService {
-	return &UrlShortenerServiceImpl{db: db}
+func NewUrlShortenerService(db storage.Storage) URLShortenerService {
+	return &URLShortenerServiceImpl{db: db}
 }
 
-func (s *UrlShortenerServiceImpl) GenerateShortURL(url string) (string, error) {
+func (s *URLShortenerServiceImpl) GenerateShortURL(url string) (string, error) {
 	if isValid, _ := regexp.MatchString("^https?://(.*)\\.(.*)$", url); !isValid {
 		return "", &InvalidURLError{value: url}
 	}
@@ -30,7 +30,7 @@ func (s *UrlShortenerServiceImpl) GenerateShortURL(url string) (string, error) {
 	return shorten, nil
 }
 
-func (s *UrlShortenerServiceImpl) GetOriginURLByID(id string) (string, error) {
+func (s *URLShortenerServiceImpl) GetOriginURLByID(id string) (string, error) {
 	if isValid, _ := regexp.MatchString("^[0-9a-zA-Z]{6}$", id); !isValid {
 		return "", &InvalidIDError{value: id}
 	}
