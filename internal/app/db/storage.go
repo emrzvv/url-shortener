@@ -7,7 +7,6 @@ import (
 
 type Storage interface {
 	Get(key string) (string, bool)
-	Contains(key string) bool
 	Set(key string, value string)
 	String() string
 	Clear()
@@ -16,11 +15,6 @@ type Storage interface {
 type InMemoryDB struct {
 	db map[string]string
 	m  sync.RWMutex
-}
-
-func (storage *InMemoryDB) Init() {
-	storage.db = make(map[string]string)
-	storage.m = sync.RWMutex{}
 }
 
 func NewInMemoryDBStorage(db map[string]string) Storage {
@@ -32,13 +26,6 @@ func (storage *InMemoryDB) Get(key string) (string, bool) {
 	value, ok := storage.db[key]
 	storage.m.RUnlock()
 	return value, ok
-}
-
-func (storage *InMemoryDB) Contains(key string) bool {
-	storage.m.RLock()
-	_, ok := storage.db[key]
-	storage.m.RUnlock()
-	return ok
 }
 
 func (storage *InMemoryDB) Set(key string, value string) {

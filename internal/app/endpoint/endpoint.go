@@ -1,8 +1,6 @@
 package endpoint
 
 import (
-	"fmt"
-	"github.com/emrzvv/url-shortener/cfg"
 	"github.com/emrzvv/url-shortener/internal/app/service"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -30,7 +28,7 @@ func Shorten(w http.ResponseWriter, r *http.Request, s service.URLShortenerServi
 
 	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fmt.Sprintf("%s/%s", cfg.Cfg.BaseAddress, shorten)))
+	w.Write([]byte(shorten))
 }
 
 func GetByID(w http.ResponseWriter, r *http.Request, s service.URLShortenerService) {

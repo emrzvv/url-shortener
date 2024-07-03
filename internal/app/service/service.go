@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"github.com/emrzvv/url-shortener/cfg"
 	storage "github.com/emrzvv/url-shortener/internal/app/db"
 	"math/rand/v2"
 	"regexp"
@@ -11,15 +13,16 @@ type URLShortenerService interface {
 	GetOriginURLByID(id string) (string, error)
 }
 
-type URLShortenerServiceImpl struct {
-	db storage.Storage
+type service struct {
+	db     storage.Storage
+	config *cfg.Config
 }
 
-func NewURLShortenerService(db storage.Storage) URLShortenerService {
-	return &URLShortenerServiceImpl{db: db}
+func NewURLShortenerService(db storage.Storage, config *cfg.Config) URLShortenerService {
+	return &service{db: db, config: config}
 }
 
-func (s *URLShortenerServiceImpl) GenerateShortURL(url string) (string, error) {
+func (s *service) GenerateShortURL(url string) (string, error) {
 	if isValid, _ := regexp.MatchString("^https?://(.+)\\.(.+)$", url); !isValid {
 		return "", &InvalidURLError{value: url}
 	}
@@ -27,10 +30,10 @@ func (s *URLShortenerServiceImpl) GenerateShortURL(url string) (string, error) {
 	for _, ok := s.db.Get(shorten); ok; shorten = generate(6) { // TODO: придумать другую стратегию с однозначной генерацией
 	}
 	s.db.Set(shorten, url)
-	return shorten, nil
+	return fmt.Sprintf("%s/%s", s.config.BaseAddress, shorten), nil
 }
 
-func (s *URLShortenerServiceImpl) GetOriginURLByID(id string) (string, error) {
+func (s *service) GetOriginURLByID(id string) (string, error) {
 	if isValid, _ := regexp.MatchString("^[0-9a-zA-Z]{6}$", id); !isValid {
 		return "", &InvalidIDError{value: id}
 	}

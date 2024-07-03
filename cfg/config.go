@@ -10,12 +10,11 @@ type Config struct {
 	BaseAddress string `env:"BASE_URL"`
 }
 
-var Cfg = &Config{}
-
-func (cfg *Config) Load() error {
+func LoadNewConfig() (*Config, error) {
+	var cfg = &Config{}
 	err := env.Parse(cfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	runAddressFlag := flag.String("a", "localhost:8080", "The address of the server")
@@ -31,10 +30,12 @@ func (cfg *Config) Load() error {
 	if cfg.BaseAddress == "" {
 		cfg.BaseAddress = *baseAddressFlag
 	}
-	return nil
+	return cfg, nil
 }
 
-func (cfg *Config) LoadDefault() {
+func LoadNewDefaultConfig() *Config {
+	var cfg = &Config{}
 	cfg.RunAddress = "localhost:8080"
 	cfg.BaseAddress = "http://localhost:8080"
+	return cfg
 }

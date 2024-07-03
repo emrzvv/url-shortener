@@ -80,10 +80,10 @@ func (test *testCase) run(t *testing.T, s service.URLShortenerService, db storag
 }
 
 func TestShorten(t *testing.T) {
+	config := cfg.LoadNewDefaultConfig()
 	db := storage.NewInMemoryDBStorage(make(map[string]string))
-	urlShortenerService := service.NewURLShortenerService(db)
+	urlShortenerService := service.NewURLShortenerService(db, config)
 
-	cfg.Cfg.LoadDefault()
 	tests := []testCase{
 		//{
 		//	name:   "#1 check not allowed method",
@@ -170,10 +170,9 @@ func TestShorten(t *testing.T) {
 }
 
 func TestGetByID(t *testing.T) {
+	config := cfg.LoadNewDefaultConfig()
 	db := storage.NewInMemoryDBStorage(make(map[string]string))
-	urlShortenerService := service.NewURLShortenerService(db)
-
-	cfg.Cfg.LoadDefault()
+	urlShortenerService := service.NewURLShortenerService(db, config)
 
 	tests := []testCase{
 		//{

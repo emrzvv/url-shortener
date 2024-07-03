@@ -12,21 +12,19 @@ import (
 )
 
 func main() {
-	var err error
-
-	err = cfg.Cfg.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err = run(); err != nil {
+	if err := run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func run() error {
+	config, configErr := cfg.LoadNewConfig()
+	if configErr != nil {
+		log.Fatal(configErr)
+	}
+
 	db := storage.NewInMemoryDBStorage(make(map[string]string))
-	urlShortenerService := service.NewURLShortenerService(db)
+	urlShortenerService := service.NewURLShortenerService(db, config)
 
 	router := chi.NewRouter()
 	router.Use(chimw.Logger)
@@ -41,8 +39,8 @@ func run() error {
 		})
 	})
 
-	log.Println("Listening on " + cfg.Cfg.RunAddress)
-	if err := http.ListenAndServe(cfg.Cfg.RunAddress, router); err != nil {
+	log.Println("Listening on " + config.RunAddress)
+	if err := http.ListenAndServe(config.RunAddress, router); err != nil {
 		return err
 	}
 
